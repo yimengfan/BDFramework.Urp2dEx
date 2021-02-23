@@ -1,1 +1,0 @@
-Original Substance example had to be packaged into a Unity package ( LegacySubstanceExample.unitypackage ) since sbsar files now cause an importing error in Unity 2018 as native Substance support has been dropped.

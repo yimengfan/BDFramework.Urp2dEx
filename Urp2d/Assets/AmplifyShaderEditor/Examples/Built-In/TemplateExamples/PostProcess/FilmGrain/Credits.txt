@@ -1,6 +1,0 @@
-Effect based on Film grain shader by jcant0n
-https://www.shadertoy.com/view/4sXSWs
-
-
-Keep them coming, contribute today! 
-http://amplify.pt/unity/amplify-shader-editor/contribute
