@@ -9,11 +9,11 @@ Shader "TheRPG/2DLit"
          [Toggle(_ZWrite)]
         _ZWrite("ZWrite", Float) = 0
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
-        [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
-        [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
-        [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
-        [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
-        [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
+//        [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
+//        [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
+//        [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
+//        [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
+//        [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
     }
 
     HLSLINCLUDE
@@ -104,6 +104,66 @@ Shader "TheRPG/2DLit"
 
                // return half4(1,0,0,1);
                 return  CombinedShapeLightShared(main, mask, i.lightingUV.xy / i.lightingUV.w);
+            }
+            ENDHLSL
+        }
+        
+        
+        Pass
+        {
+            Tags { "LightMode" = "NormalsRendering"}
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma vertex NormalsRenderingVertex
+            #pragma fragment NormalsRenderingFragment
+
+            struct Attributes
+            {
+                float3 positionOS   : POSITION;
+                float4 color		: COLOR;
+                float2 uv			: TEXCOORD0;
+                float4 tangent      : TANGENT;
+            };
+
+            struct Varyings
+            {
+                float4  positionCS		: SV_POSITION;
+                float4  color			: COLOR;
+                float2	uv				: TEXCOORD0;
+                float3  normalWS		: TEXCOORD1;
+                float3  tangentWS		: TEXCOORD2;
+                float3  bitangentWS		: TEXCOORD3;
+            };
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
+            float4 _NormalMap_ST;  // Is this the right way to do this?
+
+            Varyings NormalsRenderingVertex(Attributes attributes)
+            {
+                Varyings o = (Varyings)0;
+
+                o.positionCS = TransformObjectToHClip(attributes.positionOS);
+                o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
+                o.uv = attributes.uv;
+                o.color = attributes.color;
+                o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+                o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
+                o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
+                return o;
+            }
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
+
+            float4 NormalsRenderingFragment(Varyings i) : SV_Target
+            {
+                float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+
+                
+                return NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
             }
             ENDHLSL
         }

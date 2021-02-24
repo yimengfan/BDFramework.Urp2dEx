@@ -3,19 +3,17 @@
     Properties
     {
         _MainTex("Diffuse", 2D) = "white" {}
-        _MaskTex("Mask", 2D) = "white" {}
-        _NormalMap("Normal Map", 2D) = "bump" {}
 
         
-         [Toggle(_ZWrite)]
+        [Toggle(_ZWrite)]
         _ZWrite("ZWrite", Float) = 0
         
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
-        [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
-        [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
-        [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
-        [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
-        [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
+//        [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
+//        [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
+//        [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
+//        [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
+//        [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
     }
 
     HLSLINCLUDE
@@ -114,61 +112,11 @@
             half4 CombinedShapeLightFragment(Varyings input) : SV_Target
             {
                 half4 mainColor = input.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, input.uv);
+              
                 //混合光照
                 half4 tempColor = mainColor;
-                half4 color = CombinedShapeLightShared(tempColor, mask, input.lightingUV.xy / input.lightingUV.w);
+                half4 color = CombinedShapeLightShared(tempColor, half4(0,0,0,0), input.lightingUV.xy / input.lightingUV.w);
                 return color;
-            }
-            ENDHLSL
-        }
-
-
-        Pass
-        {
-            Tags
-            {
-                "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"
-            }
-
-            HLSLPROGRAM
-            #pragma prefer_hlslcc gles
-            #pragma vertex UnlitVertex
-            #pragma fragment UnlitFragment
-
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-                float4 color : COLOR;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                float4 color : COLOR;
-                float2 uv : TEXCOORD0;
-            };
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            float4 _MainTex_ST;
-
-            Varyings UnlitVertex(Attributes attributes)
-            {
-                Varyings o = (Varyings)0;
-
-                o.positionCS = TransformObjectToHClip(attributes.positionOS);
-                o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.uv = attributes.uv;
-                o.color = attributes.color;
-                return o;
-            }
-
-            float4 UnlitFragment(Varyings i) : SV_Target
-            {
-                float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                return mainTex;
             }
             ENDHLSL
         }
