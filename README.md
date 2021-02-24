@@ -8,7 +8,7 @@ Shader部分用AmplifyShaderEditor 1.8.8编写，请自行购买下载
 2.增加方向光  
 3.修复若干bug..  
 ### 管线:  
-1.修复NormalMap,透视相机、相机Rotation变化 下计算出错 
+1.修复NormalMap,透视相机、相机Rotation变化 下计算出错   
 2.实现_2dCameraOpaqueTex   
 3.实现_2dCameraDepthTex  
 4.实现RenderFeature
